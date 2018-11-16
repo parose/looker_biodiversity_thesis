@@ -47,9 +47,32 @@ view: parks {
     map_layer_name: us_states
   }
 
+  dimension: miles_to_city {
+    type: distance
+    start_location_field: parks.park_location
+    end_location_field: cities.city_location
+    units: miles
+  }
+
   measure: count {
     type: count
     drill_fields: [park_name, state]
+  }
+
+  measure: count_threatened_species {
+    type: count_distinct
+    sql: ${species.species_id} ;;
+    drill_fields: [species.scientific_name, species.common_names, species.conservation_status]
+    filters: {
+      field: species.is_threatened
+      value: "yes"
+    }
+  }
+
+  measure: threatened_species_proportion {
+    type: number
+    sql:  ${parks.count_threatened_species} / ${biodiversity_index} ;;
+    drill_fields: [species.scientific_name, species.common_names, species.conservation_status]
   }
 
   measure: biodiversity_index {
@@ -63,4 +86,11 @@ view: parks {
     drill_fields: [species.scientific_name, species.common_names, species.abundance]
     sql: ${biodiversity_index} / ${park_acres} ;;
   }
+
+  measure: min_city_distance {
+    type: min
+    sql: ${miles_to_city} ;;
+    drill_fields: [parks.miles_to_city, parks.park_name, cities.city, cities.state_id, cities.zip]
+  }
+
 }

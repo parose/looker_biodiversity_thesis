@@ -1,10 +1,14 @@
 view: cities {
-  sql_table_name: biodiversity_in_parks.cities ;;
+  derived_table: {
+    sql: SELECT distinct city, lat, lng, state_id, state_name, flattened_zip
+         FROM biodiversity_in_parks.cities  AS cities
+         CROSS JOIN unnest(split(zip, " ")) as flattened_zip ;;
+  }
 
   dimension: composite_key {
     hidden: yes
     type: string
-    sql: count(distinct concat(cast(lat as string), cast(lng as string))) ;;
+    sql: concat(city, cast(lat as string), cast(lng as string), cast(flattened_zip as string)) ;;
   }
 
   dimension: city {
@@ -45,11 +49,6 @@ view: cities {
   dimension: zip {
     type: zipcode
     # Some cities span multiple zipcodes, so only get the first one
-    sql: substr(${TABLE}.zip, 1, 5) ;;
-  }
-
-  measure: count {
-    type: count
-    drill_fields: [state_name]
+    sql: ${TABLE}.flattened_zip ;;
   }
 }

@@ -18,6 +18,7 @@ view: species {
   }
 
   dimension: common_names {
+    hidden: yes
     type: string
     sql: ${TABLE}.Common_Names ;;
   }
@@ -28,6 +29,7 @@ view: species {
   }
 
   dimension: family {
+    group_label: "Taxonomy"
     type: string
     sql: ${TABLE}.Family ;;
   }
@@ -43,6 +45,7 @@ view: species {
   }
 
   dimension: order {
+    group_label: "Taxonomy"
     type: string
     sql: ${TABLE}.`Order` ;;
   }
@@ -65,6 +68,12 @@ view: species {
   dimension: seasonality {
     type: string
     sql: ${TABLE}.Seasonality ;;
+  }
+
+  dimension: is_threatened {
+    hidden: yes
+    type: yesno
+    sql: ${TABLE}.Conservation_Status != "" ;;
   }
 
   measure: count {
