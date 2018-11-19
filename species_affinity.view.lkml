@@ -1,5 +1,9 @@
 include: "*.view"
 
+datagroup: affinity_pdt_rebuild {
+  max_cache_age: "24 hours"
+  sql_trigger: SELECT EXTRACT(WEEK from CURRENT_TIMESTAMP()) ;;
+}
 
 view: park_species {
   derived_table: {
@@ -31,7 +35,7 @@ view: total_parks {
   dimension: count {
     type: number
     sql: ${TABLE}.count ;;
-    view_label: "Species Affinity"
+    view_label: "Affinity"
     label: "Total Park Count"
   }
 }
@@ -48,7 +52,7 @@ explore: park_species_affinity {
 
 view: park_species_affinity {
   derived_table: {
-    persist_for: "24 hours"
+    datagroup_trigger: affinity_pdt_rebuild
     # indexes: ["species_a"]
     sql: SELECT species_a
       , species_b

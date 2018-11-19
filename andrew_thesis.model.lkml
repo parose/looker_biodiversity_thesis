@@ -22,7 +22,9 @@ include: "/datablocks_gsod_bq/bigquery*.view"
 # Advanced Analysis (such as Ranking, Cohort Analysis, Retention Analysis, Forecasting)
 #   - Affinity analysis: which species tend to appear in the same park together?
 # One new feature from the past three releases
-# Check-in with Mentor
+#   - Something from Looker 6?
+#     - Enhanced color picker
+#     - New Cartesian charts
 
 # A presentable dashboard centered around a use case
 
@@ -37,6 +39,7 @@ explore: cities {
 
 }
 
+# Make new view to account for parks in multiple states?
 explore: parks {
   label: "National Parks"
 
@@ -58,13 +61,35 @@ explore: parks {
     sql_on: ${cities.state_id} = ${parks.state} ;;
     relationship: many_to_many
   }
+}
 
-  join: zipcode_station {
-    from: bq_zipcode_station
-    sql_on: ${zipcode_station.zipcode} = ${cities.zip} ;;
-    relationship: many_to_many
+explore: park_weather {
+  view_name: parks
+  view_label: "Parks"
+
+  fields: [ALL_FIELDS*, -parks.miles_to_city, -parks.min_city_distance]
+
+  join: species {
+    sql_on: ${parks.park_name} = ${species.park_name} ;;
+    type: left_outer
+    relationship: one_to_many
   }
 
+  join: park_nearest_city {
+    view_label: "Parks"
+    fields: [park_nearest_city.nearest_city, park_nearest_city.nearest_city_distance]
+    sql_on: ${parks.park_name} = ${park_nearest_city.park_name} ;;
+    type: left_outer
+    relationship: one_to_many
+  }
+
+# TO JOIN TO WEATHER:
+# Get zip code of nearest city to each park
+  join: zipcode_station {
+    from: bq_zipcode_station
+    sql_on: ${zipcode_station.zipcode} = ${park_nearest_city.nearest_zip} ;;
+    relationship: many_to_many
+  }
   join: gsod {
     from: bq_gsod
     view_label: "Geography"
