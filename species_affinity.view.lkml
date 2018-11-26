@@ -1,12 +1,9 @@
 include: "*.view"
 
-datagroup: affinity_pdt_rebuild {
-  max_cache_age: "24 hours"
-  sql_trigger: SELECT EXTRACT(WEEK from CURRENT_TIMESTAMP()) ;;
-}
 
 view: park_species {
   derived_table: {
+    datagroup_trigger: affinity_pdt_rebuild
     sql: SELECT parks.park_name,
                 species.species_id,
                 species.scientific_name as species_name
@@ -17,6 +14,7 @@ view: park_species {
 
 view: total_park_species {
   derived_table: {
+    datagroup_trigger: affinity_pdt_rebuild
     sql: SELECT species.scientific_name as species_name,
                 count(distinct concat(species.scientific_name, parks.park_name)) as species_park_count
          FROM biodiversity_in_parks.parks  AS parks
@@ -28,6 +26,7 @@ view: total_park_species {
 
 view: total_parks {
   derived_table: {
+    datagroup_trigger: affinity_pdt_rebuild
     sql: SELECT count(*) as count
          FROM biodiversity_in_parks.parks  AS parks ;;
   }
@@ -40,13 +39,19 @@ view: total_parks {
   }
 }
 
-explore: park_species_affinity {
-  label: "Affinity"
-  view_label: "Affinity"
-
-  join: total_parks {
-    type: cross
-    relationship: many_to_one
+view: park_species_affinity_intermediate {
+  derived_table: {
+    datagroup_trigger: affinity_pdt_rebuild
+    # indexes: ["species_a"]
+    sql: SELECT op1.species_name as species_a
+        , op2.species_name as species_b
+        , count(*) as joint_park_count
+        FROM ${park_species.SQL_TABLE_NAME} as op1
+        JOIN ${park_species.SQL_TABLE_NAME} op2
+        ON op1.park_name = op2.park_name
+        AND op1.species_id <> op2.species_id            -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
+        GROUP BY species_a, species_b
+       ;;
   }
 }
 
@@ -59,20 +64,16 @@ view: park_species_affinity {
       , joint_park_count
       , top1.species_park_count as species_a_park_count   -- total number of parks with species A in them
       , top2.species_park_count as species_b_park_count   -- total number of parks with species B in them
-      FROM (
-        SELECT op1.species_name as species_a
-        , op2.species_name as species_b
-        , count(*) as joint_park_count
-        FROM ${park_species.SQL_TABLE_NAME} as op1
-        JOIN ${park_species.SQL_TABLE_NAME} op2
-        ON op1.park_name = op2.park_name
-        AND op1.species_id <> op2.species_id            -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
-        GROUP BY species_a, species_b
-      ) as prop
+      FROM ${park_species_affinity_intermediate.SQL_TABLE_NAME} as prop
       JOIN ${total_park_species.SQL_TABLE_NAME} as top1 ON prop.species_a = top1.species_name
       JOIN ${total_park_species.SQL_TABLE_NAME} as top2 ON prop.species_b = top2.species_name
-      ORDER BY species_a, joint_park_count DESC, species_b
        ;;
+  }
+
+  dimension: primary_key {
+    hidden: yes
+    primary_key: yes
+    sql: concat(${TABLE}.species_a, ${TABLE}.species_b) ;;
   }
 
   dimension: species_a {

@@ -19,8 +19,10 @@ include: "/datablocks_gsod_bq/bigquery*.view"
 #   - Weather block
 
 # A feature involving Liquid HTML (like parameters or templated filters) to make your explores dynamic
+#   - Currently using parameters with biodiversity score
 # Advanced Analysis (such as Ranking, Cohort Analysis, Retention Analysis, Forecasting)
 #   - Affinity analysis: which species tend to appear in the same park together?
+#   - Looks like this might be difficult; BQ running out of memory?
 # One new feature from the past three releases
 #   - Something from Looker 6?
 #     - Enhanced color picker
@@ -32,9 +34,18 @@ datagroup: andrew_rose_thesis_default_datagroup {
   max_cache_age: "1 hour"
 }
 
+datagroup: affinity_pdt_rebuild {
+  max_cache_age: "24 hours"
+  sql_trigger: SELECT EXTRACT(WEEK from CURRENT_TIMESTAMP()) ;;
+}
+
 persist_with: andrew_rose_thesis_default_datagroup
 
 # EXPLORES
+explore: biodiversity_metrics {
+
+}
+
 explore: cities {
 
 }
@@ -72,6 +83,13 @@ explore: park_weather {
   join: species {
     sql_on: ${parks.park_name} = ${species.park_name} ;;
     type: left_outer
+    relationship: one_to_many
+  }
+
+  join: common_names {
+    view_label: "Species"
+    fields: [common_names.common_name]
+    sql_on: ${species.scientific_name} = ${common_names.scientific_name} ;;
     relationship: one_to_many
   }
 
@@ -128,6 +146,16 @@ explore: park_weather {
 #     relationship: many_to_one
 #   }
 # }
+
+explore: park_species_affinity {
+  label: "Affinity"
+  view_label: "Affinity"
+
+  join: total_parks {
+    type: cross
+    relationship: many_to_one
+  }
+}
 
 explore: gsod {
   from: bq_gsod
