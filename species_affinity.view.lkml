@@ -3,10 +3,12 @@ include: "*.view"
 
 view: park_species {
   derived_table: {
+    partition_keys: ["now"]
+    cluster_keys: ["park_name"]
     datagroup_trigger: affinity_pdt_rebuild
-    sql: SELECT parks.park_name,
-                species.species_id,
+    sql: SELECT distinct parks.park_name as park_name,
                 species.scientific_name as species_name
+                current_datetime() as now
          FROM biodiversity_in_parks.parks  AS parks
          JOIN biodiversity_in_parks.species AS species ON parks.park_name = species.park_name ;;
   }
@@ -49,7 +51,7 @@ view: park_species_affinity_intermediate {
         FROM ${park_species.SQL_TABLE_NAME} as op1
         JOIN ${park_species.SQL_TABLE_NAME} op2
         ON op1.park_name = op2.park_name
-        AND op1.species_id <> op2.species_id            -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
+        AND op1.scientific_name <> op2.scientific_name  -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
         GROUP BY species_a, species_b
        ;;
   }

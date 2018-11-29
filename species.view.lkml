@@ -28,12 +28,6 @@ view: species {
     sql: ${TABLE}.Conservation_Status ;;
   }
 
-  dimension: family {
-    group_label: "Taxonomy"
-    type: string
-    sql: ${TABLE}.Family ;;
-  }
-
   dimension: nativeness {
     type: string
     sql: ${TABLE}.Nativeness ;;
@@ -50,6 +44,24 @@ view: species {
     sql: ${TABLE}.`Order` ;;
   }
 
+  dimension: family {
+    group_label: "Taxonomy"
+    type: string
+    sql: ${TABLE}.Family ;;
+  }
+
+  dimension: genus {
+    group_label: "Taxonomy"
+    type: string
+    sql: split(${scientific_name}, " ")[safe_offset(0)] ;;
+  }
+
+  dimension: species {
+    group_label: "Taxonomy"
+    type: string
+    sql: split(${scientific_name}, " ")[safe_offset(1)] ;;
+  }
+
   dimension: park_name {
     type: string
     sql: ${TABLE}.Park_Name ;;
@@ -63,6 +75,10 @@ view: species {
   dimension: scientific_name {
     type: string
     sql: ${TABLE}.Scientific_Name ;;
+    link: {
+      label: "Species Details"
+      url: "https://productday.dev.looker.com/dashboards/256?Species%20Scientific%20Name={{ value | url_encode }}"
+    }
   }
 
   dimension: seasonality {
@@ -78,7 +94,7 @@ view: species {
 
   measure: count {
     type: count
-    drill_fields: [species_id, scientific_name, park_name]
+    drill_fields: [scientific_name, common_names, conservation_status]
   }
 
   # Measure to add up the total number of acres a species can be found in

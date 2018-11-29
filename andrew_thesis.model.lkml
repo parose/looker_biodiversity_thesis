@@ -20,13 +20,24 @@ include: "/datablocks_gsod_bq/bigquery*.view"
 
 # A feature involving Liquid HTML (like parameters or templated filters) to make your explores dynamic
 #   - Currently using parameters with biodiversity score
-# Advanced Analysis (such as Ranking, Cohort Analysis, Retention Analysis, Forecasting)
-#   - Affinity analysis: which species tend to appear in the same park together?
+# Advanced Analysis - Affinity analysis: which species tend to appear in the same park together?
 #   - Looks like this might be difficult; BQ running out of memory?
+#     - Check the use of species_id - don't want to cross join on all 100,000 rows
+#     - normalize species name - remove "var. ___"?
+#     - check duplicate species - reduce dataset size
+#     - cluster_keys/partition_keys
 # One new feature from the past three releases
 #   - Something from Looker 6?
 #     - Enhanced color picker
 #     - New Cartesian charts
+#   - 6.2: Totals for table calcs?
+
+# Split scientific name into genus/species/subspecies
+# More biodiversity metrics
+# Species "adaptability" score - based on variance of temperature/rainfall/etc. of parks where it is present
+#   - Average number of standard deviations a park is from the average?
+#   - Track separate adaptability metrics - eg. an animal can have varying rainfall as long as temp is same
+#   - Bin temp/precipitation into buckets to make histograms?
 
 # A presentable dashboard centered around a use case
 
@@ -46,9 +57,9 @@ explore: biodiversity_metrics {
 
 }
 
-explore: cities {
-
-}
+# explore: cities {
+#
+# }
 
 # Make new view to account for parks in multiple states?
 explore: parks {
@@ -77,6 +88,8 @@ explore: parks {
 explore: park_weather {
   view_name: parks
   view_label: "Parks"
+
+  sql_always_where: ${gsod.year} = "2018";;
 
   fields: [ALL_FIELDS*, -parks.miles_to_city, -parks.min_city_distance]
 
@@ -109,7 +122,7 @@ explore: park_weather {
     relationship: many_to_many
   }
   join: gsod {
-    from: bq_gsod
+    from: gsod_extended
     view_label: "Geography"
     type: left_outer
     relationship: one_to_many
@@ -157,56 +170,56 @@ explore: park_species_affinity {
   }
 }
 
-explore: gsod {
-  from: bq_gsod
-  join: zipcode_station {
-    from: bq_zipcode_station
-    view_label: "Geography"
-    type: left_outer
-    relationship: many_to_one
-    sql_on: ${gsod.station_id} = ${zipcode_station.nearest_station_id}
-      and ${gsod.year} = ${zipcode_station.year};;
-  }
-  join: stations {
-    from: bq_stations
-    type: left_outer
-    relationship: many_to_one
-    sql_on: ${zipcode_station.nearest_station_id} = ${stations.station_id} ;;
-  }
-  join: zipcode_county{
-    from: bq_zipcode_county
-    view_label: "Geography"
-    type: left_outer
-    relationship: many_to_one
-    sql_on: ${zipcode_station.zipcode} = ${zipcode_county.zipcode}  ;;
-  }
-  join: zipcode_facts {
-    from: bq_zipcode_facts
-    view_label: "Geography"
-    type: left_outer
-    relationship: one_to_many
-    sql_on: ${zipcode_county.zipcode} = ${zipcode_facts.zipcode} ;;
-  }
-}
+# explore: gsod {
+#   from: bq_gsod
+#   join: zipcode_station {
+#     from: bq_zipcode_station
+#     view_label: "Geography"
+#     type: left_outer
+#     relationship: many_to_one
+#     sql_on: ${gsod.station_id} = ${zipcode_station.nearest_station_id}
+#       and ${gsod.year} = ${zipcode_station.year};;
+#   }
+#   join: stations {
+#     from: bq_stations
+#     type: left_outer
+#     relationship: many_to_one
+#     sql_on: ${zipcode_station.nearest_station_id} = ${stations.station_id} ;;
+#   }
+#   join: zipcode_county{
+#     from: bq_zipcode_county
+#     view_label: "Geography"
+#     type: left_outer
+#     relationship: many_to_one
+#     sql_on: ${zipcode_station.zipcode} = ${zipcode_county.zipcode}  ;;
+#   }
+#   join: zipcode_facts {
+#     from: bq_zipcode_facts
+#     view_label: "Geography"
+#     type: left_outer
+#     relationship: one_to_many
+#     sql_on: ${zipcode_county.zipcode} = ${zipcode_facts.zipcode} ;;
+#   }
+# }
 
-explore: zipcode_county {
-  from: bq_zipcode_county
-  join: zipcode_facts {
-    from: bq_zipcode_facts
-    type: left_outer
-    sql_on: ${zipcode_county.zipcode} = ${zipcode_facts.zipcode} ;;
-    relationship: one_to_many
-  }
-  join: zipcode_station {
-    from: bq_zipcode_station
-    type: left_outer
-    relationship: many_to_one
-    sql_on: ${zipcode_county.zipcode} = ${zipcode_station.zipcode} ;;
-  }
-  join: stations {
-    from: bq_stations
-    type: left_outer
-    relationship: one_to_one
-    sql_on: ${zipcode_station.nearest_station_id} = ${stations.station_id} ;;
-  }
-}
+# explore: zipcode_county {
+#   from: bq_zipcode_county
+#   join: zipcode_facts {
+#     from: bq_zipcode_facts
+#     type: left_outer
+#     sql_on: ${zipcode_county.zipcode} = ${zipcode_facts.zipcode} ;;
+#     relationship: one_to_many
+#   }
+#   join: zipcode_station {
+#     from: bq_zipcode_station
+#     type: left_outer
+#     relationship: many_to_one
+#     sql_on: ${zipcode_county.zipcode} = ${zipcode_station.zipcode} ;;
+#   }
+#   join: stations {
+#     from: bq_stations
+#     type: left_outer
+#     relationship: one_to_one
+#     sql_on: ${zipcode_station.nearest_station_id} = ${stations.station_id} ;;
+#   }
+# }

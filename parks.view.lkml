@@ -38,6 +38,10 @@ view: parks {
   dimension: park_name {
     type: string
     sql: ${TABLE}.Park_Name ;;
+    link: {
+      label: "Park Details"
+      url: "https://productday.dev.looker.com/dashboards/255?Park%20Name={{ value | url_encode }}"
+    }
   }
 
   dimension: state {
@@ -71,11 +75,11 @@ view: parks {
 
   measure: threatened_species_proportion {
     type: number
-    sql:  ${parks.count_threatened_species} / ${biodiversity_index} ;;
+    sql:  ${parks.count_threatened_species} / ${species_richness} ;;
     drill_fields: [species.scientific_name, species.common_names, species.conservation_status]
   }
 
-  measure: biodiversity_index {
+  measure: species_richness {
     type: count_distinct
     drill_fields: [species.scientific_name, species.common_names, species.abundance]
     sql: ${species.species_id} ;;
@@ -84,7 +88,7 @@ view: parks {
   measure: biodiversity_per_acre {
     type: number
     drill_fields: [species.scientific_name, species.common_names, species.abundance]
-    sql: ${biodiversity_index} / ${park_acres} ;;
+    sql: ${species_richness} / ${park_acres} ;;
   }
 
   measure: min_city_distance {
