@@ -7,8 +7,8 @@ view: park_species {
     cluster_keys: ["park_name"]
     datagroup_trigger: affinity_pdt_rebuild
     sql: SELECT distinct parks.park_name as park_name,
-                species.scientific_name as species_name
-                current_datetime() as now
+                split(species.scientific_name, " ")[offset(0)] as species_name,
+                current_date() as now
          FROM biodiversity_in_parks.parks  AS parks
          JOIN biodiversity_in_parks.species AS species ON parks.park_name = species.park_name ;;
   }
@@ -17,11 +17,11 @@ view: park_species {
 view: total_park_species {
   derived_table: {
     datagroup_trigger: affinity_pdt_rebuild
-    sql: SELECT species.scientific_name as species_name,
-                count(distinct concat(species.scientific_name, parks.park_name)) as species_park_count
+    sql: SELECT split(species.scientific_name, " ")[offset(0)] as species_name,
+                count(distinct parks.park_name) as species_park_count
          FROM biodiversity_in_parks.parks  AS parks
          JOIN biodiversity_in_parks.species AS species ON parks.park_name = species.park_name
-         GROUP BY species.scientific_name
+         GROUP BY split(species.scientific_name, " ")[offset(0)]
        ;;
   }
 }
@@ -51,7 +51,7 @@ view: park_species_affinity_intermediate {
         FROM ${park_species.SQL_TABLE_NAME} as op1
         JOIN ${park_species.SQL_TABLE_NAME} op2
         ON op1.park_name = op2.park_name
-        AND op1.scientific_name <> op2.scientific_name  -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
+        AND op1.species_name <> op2.species_name  -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
         GROUP BY species_a, species_b
        ;;
   }
@@ -89,21 +89,21 @@ view: park_species_affinity {
   }
 
   dimension: joint_park_count {
-    description: "How many times item A and B were purchased in the same park"
+    description: "How many parks both species A and species B appear in"
     type: number
     sql: ${TABLE}.joint_park_count ;;
     value_format: "#"
   }
 
   dimension: species_a_park_count {
-    description: "Total number of parks with species A in them, during specified timeframe"
+    description: "Total number of parks with species A in them"
     type: number
     sql: ${TABLE}.species_a_park_count ;;
     value_format: "#"
   }
 
   dimension: species_b_park_count {
-    description: "Total number of parks with species B in them, during specified timeframe"
+    description: "Total number of parks with species B in them"
     type: number
     sql: ${TABLE}.species_b_park_count ;;
     value_format: "#"
@@ -135,21 +135,21 @@ view: park_species_affinity {
   # Affinity Metrics
 
   dimension: add_on_frequency {
-    description: "How many times both speciess are purchased when species A is purchased"
+    description: "How many times both species are present when species A is present"
     type: number
     sql: 1.0*${joint_park_count}/${species_a_park_count} ;;
     value_format: "#.00%"
   }
 
   dimension: lift {
-    description: "The likelihood that buying species A drove the purchase of species B"
+    description: "The likelihood that the presence of species B is due to species A"
     type: number
     sql: 1*${joint_park_frequency}/(${species_a_park_frequency} * ${species_b_park_frequency}) ;;
   }
 
   ## Do not display unless users have a solid understanding of  statistics and probability models
   dimension: jaccard_similarity {
-    description: "The probability both items would be purchased together, should be considered in relation to total park count, the highest score being 1"
+    description: "The probability both species would appear together, should be considered in relation to total park count, the highest score being 1"
     type: number
     sql: 1.0*${joint_park_count}/(${species_a_park_count} + ${species_b_park_count} - ${joint_park_count}) ;;
     value_format: "#,##0.#0"
