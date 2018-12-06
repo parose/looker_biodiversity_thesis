@@ -82,7 +82,7 @@ view: parks {
   measure: species_richness {
     type: count_distinct
     drill_fields: [species.scientific_name, species.common_names, species.abundance]
-    sql: ${species.species_id} ;;
+    sql: concat(${species.genus}, ${species.species}) ;;
   }
 
   measure: biodiversity_per_acre {

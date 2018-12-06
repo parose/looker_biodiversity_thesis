@@ -77,7 +77,7 @@ view: species {
     sql: ${TABLE}.Scientific_Name ;;
     link: {
       label: "Species Details"
-      url: "https://productday.dev.looker.com/dashboards/256?Species%20Scientific%20Name={{ value | url_encode }}"
+      url: "https://productday.dev.looker.com/dashboards/256?Species%20Scientific%20Name={{ value | url_encode }}&Genus={{ value | split: ' ' | first | url_encode }}"
     }
   }
 
@@ -95,6 +95,18 @@ view: species {
   measure: count {
     type: count
     drill_fields: [scientific_name, common_names, conservation_status]
+  }
+
+  measure: count_distinct_species {
+    type: count_distinct
+    drill_fields: [scientific_name, common_names, conservation_status]
+    sql: ${scientific_name} ;;
+  }
+
+  measure: percent_species {
+    type: number
+    sql: ${count} / (select ${count_distinct_species} from biodiversity_in_parks.species) ;;
+    value_format_name: percent_2
   }
 
   # Measure to add up the total number of acres a species can be found in

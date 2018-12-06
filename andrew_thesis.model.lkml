@@ -83,15 +83,25 @@ explore: parks {
     sql_on: ${cities.state_id} = ${parks.state} ;;
     relationship: many_to_many
   }
+
+  join: biodiversity_metrics {
+    sql_on: ${biodiversity_metrics.park_name} = ${parks.park_name} ;;
+    relationship: one_to_one
+  }
 }
 
 explore: park_weather {
   view_name: parks
   view_label: "Parks"
 
-  sql_always_where: ${gsod.year} = "2018";;
+  sql_always_where: ${gsod.year} = "2017";;
 
   fields: [ALL_FIELDS*, -parks.miles_to_city, -parks.min_city_distance]
+
+  join: biodiversity_metrics {
+    sql_on: ${biodiversity_metrics.park_name} = ${parks.park_name} ;;
+    relationship: one_to_one
+  }
 
   join: species {
     sql_on: ${parks.park_name} = ${species.park_name} ;;
