@@ -3,17 +3,19 @@ view: biodiversity_metrics {
     sql: SELECT parks.Park_Name, parks.Park_Acres,
             species_count,
             species.category,
-            species.conservation_status
+            species.conservation_status,
             count_distinct_species,
             (case
             when {% parameter biodiversity_metrics.biodiversity_metric %} = "Total Species"
               then species_count
             when {% parameter biodiversity_metrics.biodiversity_metric %} = "Species Per Acre"
-              then species_count / parks.Park_Acres
+              then (species_count / parks.Park_Acres) * 1000
             when {% parameter biodiversity_metrics.biodiversity_metric %} = "Species Richness"
               then species_richness
-            when {% parameter biodiversity_metrics.biodiversity_metric %} = "Species Richness"
+            when {% parameter biodiversity_metrics.biodiversity_metric %} = "Percent Species"
               then species_count / count_distinct_species
+            when {% parameter biodiversity_metrics.biodiversity_metric %} = "Park Acres"
+              then parks.Park_Acres
             else species_count
             end) as biodiversity_score
          FROM biodiversity_in_parks.parks as parks
@@ -81,12 +83,16 @@ view: biodiversity_metrics {
       value: "Percent Species"
     }
     allowed_value: {
-      label: "Species Per Acre"
+      label: "Scaled Species Per Acre"
       value: "Species Per Acre"
     }
     allowed_value: {
       label: "Species Richness"
       value: "Species Richness"
+    }
+    allowed_value: {
+      label: "Park Acres"
+      value: "Park Acres"
     }
   }
 

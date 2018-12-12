@@ -65,6 +65,7 @@ explore: biodiversity_metrics {
 explore: parks {
   label: "National Parks"
 
+  #sql_always_where: ${parks.park_name} LIKE "A%" ;;
   fields: [ALL_FIELDS*]
 
   join: species {
@@ -86,6 +87,11 @@ explore: parks {
 
   join: biodiversity_metrics {
     sql_on: ${biodiversity_metrics.park_name} = ${parks.park_name} ;;
+    relationship: one_to_one
+  }
+
+  join: dimensionalized_weather {
+    sql_on: ${parks.park_name} = ${dimensionalized_weather.park_name} ;;
     relationship: one_to_one
   }
 }
@@ -177,6 +183,12 @@ explore: park_species_affinity {
   join: total_parks {
     type: cross
     relationship: many_to_one
+  }
+
+  join: species {
+    fields: [species.scientific_name, species.common_names, species.conservation_status]
+    sql_on: ${park_species_affinity.species_a} = ${species.genus} ;;
+    relationship: many_to_many
   }
 }
 

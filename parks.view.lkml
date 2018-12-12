@@ -83,6 +83,10 @@ view: parks {
     type: count_distinct
     drill_fields: [species.scientific_name, species.common_names, species.abundance]
     sql: concat(${species.genus}, ${species.species}) ;;
+    link: {
+      label: "{{ parks.park_name._value }}"
+      url: "https://www.google.com"
+    }
   }
 
   measure: biodiversity_per_acre {

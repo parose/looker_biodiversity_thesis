@@ -51,7 +51,7 @@ view: park_species_affinity_intermediate {
         FROM ${park_species.SQL_TABLE_NAME} as op1
         JOIN ${park_species.SQL_TABLE_NAME} op2
         ON op1.park_name = op2.park_name
-        AND op1.species_name <> op2.species_name  -- ensures we don't match on the same park items in the same park, which would corrupt our frequency metrics
+        AND op1.species_name <> op2.species_name  -- ensures we don't match on the same species items in the same park, which would corrupt our frequency metrics
         GROUP BY species_a, species_b
        ;;
   }
@@ -79,13 +79,25 @@ view: park_species_affinity {
   }
 
   dimension: species_a {
+    label: "Genus A"
     type: string
     sql: ${TABLE}.species_a ;;
+#     drill_fields: [species.scientific_name, species.common_names, species.Conservation_Status]
+#     html: <a href="/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50">{{ value }}</a> ;;
+    link: {
+      label: "Species Drill"
+      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status,parks.park_name&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+    }
   }
 
   dimension: species_b {
+    label: "Genus B"
     type: string
     sql: ${TABLE}.species_b ;;
+    link: {
+      label: "Species Drill"
+      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status,parks.park_name&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+    }
   }
 
   dimension: joint_park_count {
@@ -96,6 +108,7 @@ view: park_species_affinity {
   }
 
   dimension: species_a_park_count {
+    label: "Species A Park Count"
     description: "Total number of parks with species A in them"
     type: number
     sql: ${TABLE}.species_a_park_count ;;
@@ -103,6 +116,7 @@ view: park_species_affinity {
   }
 
   dimension: species_b_park_count {
+    label: "Species B Park Count"
     description: "Total number of parks with species B in them"
     type: number
     sql: ${TABLE}.species_b_park_count ;;
@@ -111,6 +125,7 @@ view: park_species_affinity {
 
   #  Frequencies
   dimension: species_a_park_frequency {
+    label: "Species A Park Frequency"
     description: "How frequently parks include species A as a percent of total parks"
     type: number
     sql: 1.0*${species_a_park_count}/${total_parks.count} ;;
@@ -118,6 +133,7 @@ view: park_species_affinity {
   }
 
   dimension: species_b_park_frequency {
+    label: "Species B Park Frequency"
     description: "How frequently parks include species B as a percent of total parks"
     type: number
     sql: 1.0*${species_b_park_count}/${total_parks.count} ;;
@@ -155,11 +171,11 @@ view: park_species_affinity {
     value_format: "#,##0.#0"
   }
 
-  # Aggregate Measures - ONLY TO BE USED WHEN FILTERING ON AN AGGREGATE DIMENSION (E.G. BRAND_A, CATEGORY_A)
+  # Aggregate Measures - ONLY TO BE USED WHEN FILTERING ON AN AGGREGATE DIMENSION
 
 
   measure: aggregated_joint_park_count {
-    description: "Only use when filtering on a rollup of species items, such as brand_a or category_a"
+    description: "Only use when filtering on a rollup of species items"
     type: sum
     sql: ${joint_park_count} ;;
   }
