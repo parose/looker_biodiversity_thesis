@@ -86,7 +86,11 @@ view: park_species_affinity {
 #     html: <a href="/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50">{{ value }}</a> ;;
     link: {
       label: "Species Drill"
-      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status,parks.park_name&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+    }
+    link: {
+      label: "Parks Drill"
+      url: "/explore/andrew_thesis/parks?fields=parks.park_name,species.scientific_name&f[species.genus]={{value}}&sorts=parks.park_name&limit=500&column_limit=50"
     }
   }
 
@@ -96,7 +100,11 @@ view: park_species_affinity {
     sql: ${TABLE}.species_b ;;
     link: {
       label: "Species Drill"
-      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status,parks.park_name&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+      url: "/explore/andrew_thesis/parks?fields=species.scientific_name,common_names.common_name,species.conservation_status&f[species.genus]={{value}}&sorts=species.scientific_name&limit=500&column_limit=50"
+    }
+    link: {
+      label: "Parks Drill"
+      url: "/explore/andrew_thesis/parks?fields=parks.park_name,species.scientific_name&f[species.genus]={{value}}&sorts=parks.park_name&limit=500&column_limit=50"
     }
   }
 

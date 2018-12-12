@@ -77,7 +77,8 @@ view: species {
     sql: ${TABLE}.Scientific_Name ;;
     link: {
       label: "Species Details"
-      url: "https://productday.dev.looker.com/dashboards/256?Species%20Scientific%20Name={{ value | url_encode }}&Genus={{ value | split: ' ' | first | url_encode }}"
+      url: "{% assign name_list = {{value | split: ' '}} %}
+      https://productday.dev.looker.com/dashboards/256?Species%20Scientific%20Name={{ value | url_encode }}&Genus={{ value | split: ' ' | first | url_encode }}&Species={{ name_list[1] | url_encode }}"
     }
   }
 
