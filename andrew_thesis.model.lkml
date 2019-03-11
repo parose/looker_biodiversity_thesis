@@ -1,7 +1,7 @@
 connection: "lookerdata_publicdata_standard_sql"
 
 include: "*.view"
-include: "/datablocks_gsod_bq/bigquery*.view"
+# include: "/datablocks_gsod_bq/bigquery*.view"
 
 # REQUIREMENTS
 
