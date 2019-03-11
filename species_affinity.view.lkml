@@ -116,7 +116,7 @@ view: park_species_affinity {
   }
 
   dimension: species_a_park_count {
-    label: "Species A Park Count"
+    label: "Genus A Park Count"
     description: "Total number of parks with species A in them"
     type: number
     sql: ${TABLE}.species_a_park_count ;;
@@ -124,7 +124,7 @@ view: park_species_affinity {
   }
 
   dimension: species_b_park_count {
-    label: "Species B Park Count"
+    label: "Genus B Park Count"
     description: "Total number of parks with species B in them"
     type: number
     sql: ${TABLE}.species_b_park_count ;;
@@ -133,7 +133,7 @@ view: park_species_affinity {
 
   #  Frequencies
   dimension: species_a_park_frequency {
-    label: "Species A Park Frequency"
+    label: "Genus A Park Frequency"
     description: "How frequently parks include species A as a percent of total parks"
     type: number
     sql: 1.0*${species_a_park_count}/${total_parks.count} ;;
@@ -141,7 +141,7 @@ view: park_species_affinity {
   }
 
   dimension: species_b_park_frequency {
-    label: "Species B Park Frequency"
+    label: "Genus B Park Frequency"
     description: "How frequently parks include species B as a percent of total parks"
     type: number
     sql: 1.0*${species_b_park_count}/${total_parks.count} ;;
@@ -150,7 +150,7 @@ view: park_species_affinity {
   #     value_format: '#.00%'
 
   dimension: joint_park_frequency {
-    description: "How frequently parks include both species A and B as a percent of total parks"
+    description: "How frequently parks include both genus A and B as a percent of total parks"
     type: number
     sql: 1.0*${joint_park_count}/${total_parks.count} ;;
     value_format: "#.00%"
@@ -159,21 +159,21 @@ view: park_species_affinity {
   # Affinity Metrics
 
   dimension: add_on_frequency {
-    description: "How many times both species are present when species A is present"
+    description: "How many times both genera are present when genus A is present"
     type: number
     sql: 1.0*${joint_park_count}/${species_a_park_count} ;;
     value_format: "#.00%"
   }
 
   dimension: lift {
-    description: "The likelihood that the presence of species B is due to species A"
+    description: "The likelihood that the presence of genus B is due to genus A"
     type: number
     sql: 1*${joint_park_frequency}/(${species_a_park_frequency} * ${species_b_park_frequency}) ;;
   }
 
   ## Do not display unless users have a solid understanding of  statistics and probability models
   dimension: jaccard_similarity {
-    description: "The probability both species would appear together, should be considered in relation to total park count, the highest score being 1"
+    description: "The probability both genera would appear together, should be considered in relation to total park count, the highest score being 1"
     type: number
     sql: 1.0*${joint_park_count}/(${species_a_park_count} + ${species_b_park_count} - ${joint_park_count}) ;;
     value_format: "#,##0.#0"

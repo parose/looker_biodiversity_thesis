@@ -1,4 +1,4 @@
-include: "/datablocks_gsod_bq/bigquery*.view"
+include: "//datablocks_gsod_bq/bigquery*.view"
 
 view: gsod_extended {
   extends: [bq_gsod]
