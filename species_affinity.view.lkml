@@ -5,21 +5,25 @@ view: park_species {
   derived_table: {
     partition_keys: ["now"]
     cluster_keys: ["park_name"]
-    datagroup_trigger: affinity_pdt_rebuild
+#     datagroup_trigger: affinity_pdt_rebuild
+    persist_for: "12 hours"
     sql: SELECT distinct parks.park_name as park_name,
                 split(species.scientific_name, " ")[offset(0)] as species_name,
                 current_date() as now
          FROM biodiversity_in_parks.parks  AS parks
+
          JOIN biodiversity_in_parks.species AS species ON parks.park_name = species.park_name ;;
   }
 }
 
 view: total_park_species {
   derived_table: {
-    datagroup_trigger: affinity_pdt_rebuild
+#     datagroup_trigger: affinity_pdt_rebuild
+    persist_for: "12 hours"
     sql: SELECT split(species.scientific_name, " ")[offset(0)] as species_name,
                 count(distinct parks.park_name) as species_park_count
          FROM biodiversity_in_parks.parks  AS parks
+
          JOIN biodiversity_in_parks.species AS species ON parks.park_name = species.park_name
          GROUP BY split(species.scientific_name, " ")[offset(0)]
        ;;
@@ -28,7 +32,8 @@ view: total_park_species {
 
 view: total_parks {
   derived_table: {
-    datagroup_trigger: affinity_pdt_rebuild
+#     datagroup_trigger: affinity_pdt_rebuild
+    persist_for: "12 hours"
     sql: SELECT count(*) as count
          FROM biodiversity_in_parks.parks  AS parks ;;
   }
@@ -43,7 +48,8 @@ view: total_parks {
 
 view: park_species_affinity_intermediate {
   derived_table: {
-    datagroup_trigger: affinity_pdt_rebuild
+    persist_for: "12 hours"
+#     datagroup_trigger: affinity_pdt_rebuild
     # indexes: ["species_a"]
     sql: SELECT op1.species_name as species_a
         , op2.species_name as species_b
@@ -51,6 +57,7 @@ view: park_species_affinity_intermediate {
         FROM ${park_species.SQL_TABLE_NAME} as op1
         JOIN ${park_species.SQL_TABLE_NAME} op2
         ON op1.park_name = op2.park_name
+
         AND op1.species_name <> op2.species_name  -- ensures we don't match on the same species items in the same park, which would corrupt our frequency metrics
         GROUP BY species_a, species_b
        ;;
@@ -59,10 +66,12 @@ view: park_species_affinity_intermediate {
 
 view: park_species_affinity {
   derived_table: {
-    datagroup_trigger: affinity_pdt_rebuild
+    persist_for: "12 hours"
+#     datagroup_trigger: affinity_pdt_rebuild
     # indexes: ["species_a"]
     sql: SELECT species_a
       , species_b
+
       , joint_park_count
       , top1.species_park_count as species_a_park_count   -- total number of parks with species A in them
       , top2.species_park_count as species_b_park_count   -- total number of parks with species B in them
